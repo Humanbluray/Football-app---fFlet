@@ -12,5 +12,8 @@ supabase = create_client(url, key)
 # for row in details:
 #     print(row)
 
-logo_dom = supabase.table("teams").select("logo").eq("short", "lyon").execute()
-print(list(logo_dom)[0][1][0]['logo'])
+datas = supabase.table("matches").select("*").eq("compet", "serie A").execute()
+final = list(datas)[0][1]
+
+for data in final:
+    print(data)

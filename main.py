@@ -3,6 +3,8 @@ from vues import view_handler
 
 
 def main(page: ft.Page):
+    page.window_width = 400,
+    page.window_height = 800
     page.fonts = {
         "Poppins Regular": "fonts/Poppins-Regular.ttf",
         "Poppins Medium": "fonts/Poppins-Medium.ttf",
@@ -17,8 +19,6 @@ def main(page: ft.Page):
         "Poppins Light": "fonts/Poppins-Light.ttf",
 
     }
-    page.window_width = 400,
-    page.window_height = 800
 
     def route_change(route):
         page.views.clear()

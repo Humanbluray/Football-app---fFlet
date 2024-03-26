@@ -21,40 +21,69 @@ datas_matches = {
 }
 
 
+class CompetitonBox(ft.Container):
+    def __init__(self, competition: str, country: str, flag: str):
+        super().__init__(
+            height=35, width=400,
+            padding=ft.padding.only(left=10, top=2, bottom=2),
+            bgcolor=ft.colors.GREY_100
+        )
+        self.competiton = competition
+        self.country = country
+        self.flag = flag
+
+        self.content = ft.Row(
+            [
+                ft.Image(src=f"logos/{self.flag}", height=25, width=25),
+                ft.Text(f"{self.competiton.upper()}", size=10, font_family="Poppins Bold")
+            ], alignment=ft.MainAxisAlignment.START
+        )
+
+
 class MatchBox(ft.Container):
     def __init__(self, home: str, away: str, compet: str, level: str, date: str,
-                 statut: str, heure: str, logo_home: str, logo_away: str):
+                 statut: str, heure: str, logo_home: str, logo_away: str, score: str):
         super().__init__(
             height=70,
             width=400, padding=ft.padding.only(top=2, bottom=2, left=10, right=10),
-            border_radius=10,
-            border=ft.border.all(1, color="#ebebeb")
+            border=ft.border.all(1, "#ebebeb")
         )
+        self.score = score
         self.compet = compet
         self.level = level
         self.entente = ft.Text(f"{self.compet}-{self.level}", size=10, font_family="Poppins Regular", color="grey")
         self.home = home
-        self.home2 = ft.Text(self.home, size=14, font_family="Poppins Medium")
+        self.home2 = ft.Text(self.home.upper(), size=12, font_family="Poppins Medium")
         self.date = date
         self.away = away
-        self.away2 = ft.Text(self.away, size=14, font_family="Poppins Medium")
+        self.away2 = ft.Text(self.away.upper(), size=12, font_family="Poppins Medium")
         self.statut = statut
         self.statut2 = ft.Text(self.statut, size=12, font_family="Poppins Medium")
         self.heure = heure
         self.heure2 = ft.Text(self.heure[0: 5], size=16, font_family="Poppins Medium")
         self.logo_home = logo_home
-        self.logo_home2 = ft.Image(src=f"logos/{self.logo_home}", height=30, width=30)
+        self.logo_home2 = ft.Image(src=f"logos/{self.logo_home}", height=20, width=20)
         self.logo_away = logo_away
-        self.logo_away2 = ft.Image(src=f"logos/{self.logo_away}", height=30, width=30)
+        self.logo_away2 = ft.Image(src=f"logos/{self.logo_away}", height=20, width=20)
         self.content = ft.Column(
             [
                 self.entente,
                 ft.Row(
                     [
-                        ft.Row([self.home2, self.logo_home2], spacing=1),
-                        self.heure2,
-                        ft.Row([self.logo_away2, self.away2], spacing=1),
-                    ], alignment=ft.MainAxisAlignment.SPACE_AROUND
+                        ft.Container(
+                            width=133,
+                            content=ft.Row([self.home2, self.logo_home2], spacing=2, alignment=ft.MainAxisAlignment.END)
+                        ),
+                        ft.Container(
+                            width=133,
+                            content=ft.Row([self.heure2], alignment=ft.MainAxisAlignment.SPACE_AROUND)
+                        ),
+                        ft.Container(
+                            width=133,
+                            content=ft.Row([self.logo_away2, self.away2], spacing=2, alignment=ft.MainAxisAlignment.START)
+                        ),
+                        ft.Divider(height=2)
+                    ], spacing=1
                 )
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
@@ -77,31 +106,60 @@ class Matches(ft.UserControl):
     def __init__(self, page):
         super(Matches, self).__init__()
         self.page = page
-        self.donnees = ft.Column()
+        self.donnees = ft.Column(
+            height=800, expand=True, scroll=ft.ScrollMode.ADAPTIVE,
+            spacing=0
+        )
         self.remplir()
 
     def remplir(self):
-        datas = supabase.table("matches").select("*").execute()
-        details = list(datas)[0][1]
-        for row in details:
-            logo_dom = supabase.table("teams").select("logo").eq("short", str(row["home"])).execute()
-            logo_home = list(logo_dom)[0][1][0]['logo']
-            logo_ext = supabase.table("teams").select("logo").eq("short", str(row["away"])).execute()
-            logo_away = list(logo_ext)[0][1][0]['logo']
+        compet = supabase.table("competitions").select("*").execute()
+        competitions = list(compet)[0][1]
 
+        for competition in competitions:
             self.donnees.controls.append(
-                MatchBox(
-                    home=row['home'],
-                    away=row['away'],
-                    compet=row['compet'],
-                    level=row['level'],
-                    date=row['date'],
-                    statut=row['statut'],
-                    heure=row['heure'],
-                    logo_home=logo_home,
-                    logo_away=logo_away
-                )
+                CompetitonBox(competition["name"], competition["country"], competition['flag'])
             )
+
+            match = supabase.table("matches").select("*").eq("compet", competition["name"]).execute()
+            matches = list(match)[0][1]
+
+            for row in matches:
+                logo_dom = supabase.table("teams").select("logo").eq("short", str(row["home"])).execute()
+                logo_home = list(logo_dom)[0][1][0]['logo']
+                logo_ext = supabase.table("teams").select("logo").eq("short", str(row["away"])).execute()
+                logo_away = list(logo_ext)[0][1][0]['logo']
+
+                if row['statut'].upper() == "A VENIR":
+                    self.donnees.controls.append(
+                        MatchBox(
+                            home=row['home'],
+                            away=row['away'],
+                            compet=row['compet'],
+                            level=row['level'],
+                            date=row['date'],
+                            statut=row['statut'],
+                            heure=row['heure'],
+                            logo_home=logo_home,
+                            logo_away=logo_away,
+                            score=row['score']
+                        )
+                    )
+                else:
+                    self.donnees.controls.append(
+                        MatchBox(
+                            home=row['home'],
+                            away=row['away'],
+                            compet=row['compet'],
+                            level=row['level'],
+                            date=row['date'],
+                            statut=row['statut'],
+                            heure=row['score'],
+                            logo_home=logo_home,
+                            logo_away=logo_away,
+                            score=row['score']
+                        )
+                    )
 
     def build(self):
         return ft.Container(
