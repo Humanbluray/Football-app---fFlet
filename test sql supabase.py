@@ -12,8 +12,19 @@ supabase = create_client(url, key)
 # for row in details:
 #     print(row)
 
-datas = supabase.table("matches").select("*").eq("compet", "serie A").execute()
-final = list(datas)[0][1]
+# datas = supabase.table("matches").select("*").eq("compet", "serie A").execute()
+# final = list(datas)[0][1]
+#
+# for data in final:
+#     print(data)
 
-for data in final:
+# data = supabase.table("matches").select("date").eq("id", 2).execute()
+# print(list(data)[0][1]['date'])
+
+# compet = supabase.table("competitions").select("*").execute()
+# print(compet.data[0]['name'])
+
+match = supabase.table("matches").select("*").eq("compet", 'ligue 1').execute()
+
+for data in match.data:
     print(data)

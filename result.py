@@ -1,6 +1,7 @@
 import flet as ft
 from dotenv import load_dotenv
 import os
+import asyncio
 from supabase import create_client
 load_dotenv()
 
@@ -114,7 +115,7 @@ class Matches(ft.UserControl):
 
     def remplir(self):
         compet = supabase.table("competitions").select("*").execute()
-        competitions = list(compet)[0][1]
+        competitions = compet.data
 
         for competition in competitions:
             self.donnees.controls.append(
